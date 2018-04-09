@@ -6,6 +6,8 @@ import threading
 class Pydal:
 	
 	def __init__(self, port=('127.0.0.1', 34345)):
+		self.port = port[1]
+
 		self.superColliderClient = OSC.OSCClient()
 		self.superColliderClient.connect( ('127.0.0.1', 57120) ) 
 

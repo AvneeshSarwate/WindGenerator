@@ -61,7 +61,7 @@ startPattern = {|msg, time, addr, recvPort|
     chanBackupPatMap[msg[1]] = [];
 
     channelTypeMap[msg[1]] = msg[4].asSymbol;
-    channelMetaInfo[msg[1]] = msg[5..];
+    channelMetaInfo[msg[1]] = msg[5..].asList;
 
     //create channel tempo clock if needed
     if(tempoClockMap.keys.includes(msg[1]).not,
@@ -309,7 +309,19 @@ sendSample = {|drumStr, chan, ind|
         ballVisualPort.sendMsg("/loadWorld", drumStr);
     });
     if(channelTypeMap[chan] == 'funcTrigger', {
-        lemurBouncePort.sendMsg("/funcTrigger", drumStr);
+        var metaInfo = channelMetaInfo[chan];
+        var funcTriggerPort;
+        if(metaInfo.size == 1,
+            {
+                funcTriggerPort = NetAddr("localhost", metaInfo[0]);
+                metaInfo.add(funcTriggerPort);
+            },
+            {
+                funcTriggerPort = metaInfo[1];
+            }
+        );
+        // [drumStr, funcTriggerPort].postln;
+        funcTriggerPort.sendMsg("/funcTrigger", drumStr);
     });
 };
 
@@ -317,8 +329,8 @@ sendSample = {|drumStr, chan, ind|
 //===========================================================================
 //scratch code below
 (
-d = Dictionary.new;
-d.includes(5);
+a = [1,3,5].asList;
+a.size
 )
 
 (
