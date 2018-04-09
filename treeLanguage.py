@@ -12,14 +12,7 @@
 
 #<mult>		   ::= "*"
 
-#<symbol>	   ::=  (passes isSymbol function - \/ ^  <  > \/! ^!  <!  >! with variants)
-
-
-# new syntax not in original paper: 
-# 	- You can go down to the nth child with \/:n (indexes wrap around if n > numChildren)
-#	- You can move forwards/backwards n steps among siblings with >:n and <:n (indexes wrap around)
-#	- For instructions suffixed with @, the node value arrived at via that instruction will 
-#		be returned in a traversal list. See treeBuilder.execute() for simple implementation
+#<symbol>	   ::=  \/ ^  <  > \/! ^!  <!  >!
 
 
 import re
@@ -42,8 +35,12 @@ def tokenize(inputStr):
 	#print " ".join(tokens)
 	return tokens
 
+# To get child/sibling indexing for free, rather than each "token" being
+# a string, have each "token" be a regex. For non-indexed tokens, the
+# string in this array would stay the same. But for indexed tokens, 
+# (s in {<, >, \/}), it would be the regex '(s(:[0-9]+)?)$'
 def isSymbol(sym):
-	symbolTypes = ['(\\\/(:[0-9]+)?@?)$', '\^@?', '(<(:[0-9]+)?@?)$', '(>(:[0-9]+)?@?)$', '\\\/!@?', '<!@?', '>!@?']
+	symbolTypes = ['(\\\/(:[0-9]+)?@?)$', '\^@?', '(<(:[0-9]+)?@?)$', '(>(:[0-9]+)?@?)$', '\\\/!@?', '<!@?', '>!@?', '-@?', '\+', "_"]
 	return True in [re.match(s, sym) and True for s in symbolTypes]
 
 
@@ -63,7 +60,8 @@ def parseExpression(tokenList, ind, depth, debug = False):
 			parenOrMultNode, newInd = parseParenBlock(tokenList, ind+1, depth+1, debug)
 			node.children.append(parenOrMultNode)
 		else:
-			raise StopIteration("can only start expressions with symbols or open paren: ") 
+			print tokenList
+			raise StopIteration("can only start expressions with symbols or open paren: " + tokenList[ind] + " " + str(ind)) 
 
 		ind = newInd
 
