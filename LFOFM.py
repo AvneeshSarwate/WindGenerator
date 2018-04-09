@@ -1,4 +1,5 @@
 import OSC
+import copy
 # SIMPLE EXAMPLES
 # t = Tri()
 # sw = Saw(5)
@@ -89,49 +90,61 @@ class Wave(object):
 		return self.waveName + ".(" + ",".join(map(str, valArgs) + ["time"]) + ")"
 
 	def __mul__(self, other):
-		if type(other) is int or type(other) is float or issubclass(type(other),  Wave):
-			self.amp = 0 if other == 0 or self.amp == 0 else self.amp * other
-			self.shift = 0 if other == 0 or self.shift == 0 else self.shift * other
-			return self
+		selfCopy = copy.deepcopy(self)
+		otherCopy = copy.deepcopy(other)
+		if type(otherCopy) is int or type(otherCopy) is float or issubclass(type(otherCopy),  Wave):
+			selfCopy.amp = 0 if otherCopy == 0 or selfCopy.amp == 0 else selfCopy.amp * otherCopy
+			selfCopy.shift = 0 if otherCopy == 0 or selfCopy.shift == 0 else selfCopy.shift * otherCopy
+			return selfCopy
 		else:
 			raise NotImplementedError
 
 	def __rmul__(self, other):
-		if type(other) is int or type(other) is float or issubclass(type(other),  Wave):
-			self.amp = 0 if other == 0 else self.amp * other
-			self.shift = 0 if other == 0 else self.shift * other
-			return self
+		selfCopy = copy.deepcopy(self)
+		otherCopy = copy.deepcopy(other)
+		if type(otherCopy) is int or type(otherCopy) is float or issubclass(type(otherCopy),  Wave):
+			selfCopy.amp = 0 if otherCopy == 0 else selfCopy.amp * otherCopy
+			selfCopy.shift = 0 if otherCopy == 0 else selfCopy.shift * otherCopy
+			return selfCopy
 		else:
 			raise NotImplementedError
 
 	def __div__(self, other):
-		if other == 0:
+		selfCopy = copy.deepcopy(self)
+		otherCopy = copy.deepcopy(other)
+		if otherCopy == 0:
 			raise ValueError("Can't divide by 0")
-		if type(other) is int or type(other) is float or issubclass(type(other),  Wave):
-			self.amp = self.amp / other
-			self.shift = self.shift / other
-			return self
+		if type(otherCopy) is int or type(otherCopy) is float or issubclass(type(otherCopy),  Wave):
+			selfCopy.amp = selfCopy.amp / otherCopy
+			selfCopy.shift = selfCopy.shift / other
+			return selfCopy
 		else:
 			raise NotImplementedError
 
 	def __add__(self, other):
-		if type(other) is int or type(other) is float or issubclass(type(other),  Wave):
-			self.shift = self.shift + other
-			return self
+		selfCopy = copy.deepcopy(self)
+		otherCopy = copy.deepcopy(other)
+		if type(otherCopy) is int or type(otherCopy) is float or issubclass(type(otherCopy),  Wave):
+			selfCopy.shift = selfCopy.shift + otherCopy
+			return selfCopy
 		else:
 			raise NotImplementedError
 
 	def __radd__(self, other):
-		if type(other) is int or type(other) is float or issubclass(type(other),  Wave):
-			self.shift = self.shift + other
-			return self
+		selfCopy = copy.deepcopy(self)
+		otherCopy = copy.deepcopy(other)
+		if type(otherCopy) is int or type(otherCopy) is float or issubclass(type(otherCopy),  Wave):
+			selfCopy.shift = selfCopy.shift + otherCopy
+			return selfCopy
 		else:
 			raise NotImplementedError
 
 	def __sub__(self, other):
-		if type(other) is int or type(other) is float or issubclass(type(other),  Wave):
-			self.shift = self.shift - other
-			return self
+		selfCopy = copy.deepcopy(self)
+		otherCopy = copy.deepcopy(other)
+		if type(otherCopy) is int or type(otherCopy) is float or issubclass(type(otherCopy),  Wave):
+			selfCopy.shift = selfCopy.shift - otherCopy
+			return selfCopy
 		else:
 			raise NotImplementedError
 

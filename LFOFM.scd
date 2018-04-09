@@ -1,5 +1,19 @@
+
+
+
+(
+//future feature:
+//type functions
+// -- there can be different "types" of waves (like pydal pattern types). each type has a certain format of meta-info associated with it as well as several functions
+// ------ one that instantiates whatever structures are needed for that wave type instance
+// ------ one that is executed for each value emitted for the wave
+// ------ one that is executed when the wave is stopped
+
+)
+
 (
 var midiOut, channelMap, startWaveHandler, stopWaveHandler, startWave, stopWave, masterTempoClock, maxOSCport, scPort;
+//all waves have a period of 2 beats and a range of [-1, 1]
 var sinwav = {|fr,ph,am,sh, time| (sin((pi*fr*time)+ph)*am)+sh};
 var coswav = {|fr,ph,am,sh, time| (cos((pi*fr*time)+ph)*am)+sh};
 
@@ -27,6 +41,11 @@ var plotFunc = {|calcFunc, start, end, calcFuncStr|
     ~debugf = calcFunc;
     AppClock.sched(0.1, {vals.plot});
     ["SENT WAVE DATA", vals.maxItem, vals.minItem, calcFuncStr, vals].postln;
+};
+
+
+~waveWarpFunc = {|val|
+    val.floor.midicps
 };
 
 
@@ -63,7 +82,7 @@ channelMap = Dictionary.new;
 //msg[1] is cc ind and/or waveKey, msg[2] is calcString, msg[3] is "OSC" or "midi",
 //msg[4] is "max" or "sc" port, msg[5] is OSC addr, msg [6...] is meta info for OSC waves
 
-//TODO - clean this up - its overlapping with above definitions
+//TODO - clean this up - its overlapping with above definitions (only relevant for if you are sending midi waves
 //msg[4] is visIndex (which max display channel to display the wave on)
 //msg[5] is the visString - the label of what parameter name is mapped to that CC
 startWave = {|msg, time, addr, recvPort|
@@ -71,6 +90,7 @@ startWave = {|msg, time, addr, recvPort|
         var func = createCalcFunc.(msg[2].asString);
         var ccIndOrWaveAddr = msg[1];
         var oscAddr = msg[5].asString;
+        var waveMetaInfo = msg[6];
         ~debugf = func;
         ["WAVE TASK STARTED", msg[3].asString].postln;
         {
@@ -85,7 +105,9 @@ startWave = {|msg, time, addr, recvPort|
                 {
                     var port = if(msg[4].asSymbol == 'max', maxOSCport, scPort);
                     //[oscAddr, func.(masterTempoClock.beats)].postln;
-                    port.sendRaw(([oscAddr, func.(masterTempoClock.beats)]++[msg[6]]).asArray.asRawOSC)
+                    var waveVal = func.(masterTempoClock.beats);
+                    waveVal = if(msg[6].asString == "warp", {~waveWarpFunc.(waveVal)}, {waveVal});
+                    port.sendRaw(([oscAddr, waveVal] ++ [msg[6]]).asArray.asRawOSC)
                 }
             );
             0.02.wait;
@@ -105,14 +127,14 @@ startWave = {|msg, time, addr, recvPort|
     }, masterTempoClock);
     msg.postln;
     waveTask.start;
-    waveBufferTask.start;
+    // waveBufferTask.start;
     if(channelMap[msg[1]].isNil.not, {
         channelMap[msg[1]][0].stop;
         channelMap[msg[1]][0].free;
         channelMap[msg[1]][1].stop;
         channelMap[msg[1]][1].free;
     });
-    channelMap[msg[1]] = [waveTask, waveBufferTask];
+    channelMap[msg[1]] = [waveTask, waveBufferTask, msg[6]];
     ~chanDebugMap[msg[1]] = [createCalcFunc.(msg[2].asString), msg[2].asString];
 };
 startWaveHandler = OSCFunc(startWave, "/startWave");
@@ -143,7 +165,7 @@ k = 1000;
 (k..(k+500)).collect({|i| ~debugf.(i*0.02)}).plot;
 )
 
-
+5.mtof
 (
 var midiOut, channelMap, startWaveHandler, stopWaveHandler, startWave, stopWave, masterTempoClock;
 var sinwav = {|fr,ph,am,sh, time| (sin((pi*fr*time)+ph)*am)+sh};
