@@ -2,6 +2,7 @@ import OSC
 import PydalParser as parser
 import copy
 import threading 
+import math
 
 class Pydal:
 	
@@ -208,6 +209,22 @@ class LoopPattern:
 	def render(self):
 		newLoop = self.hitListToTimestampList(self.loop)
 		return [[hit[0], {"^".join([str(h) for h in hit[1:]])}] for hit in newLoop]
+
+class FlatGenericPattern:
+
+	# Pydal sequencer assumes loop list is a timestamp list (not hit duration list)  and then converts 
+	# it to a hit list where the time associated with a hit is the time between it and the NEXT hit.
+	# Also, it assumes first event happens at 0.0 time (need to add a ~ event if this is not the case).
+	# This should all be handled externally to this class
+	def __init__(self, loop, patternType, hitSerializer):
+		self.loop = loop #[pre-note-wait, note, vel, chan, "on/off/timeafterlasthit"]
+		self.frac = math.ceil(loop[-1][0])
+		self.type = patternType
+		self.hitSerializer = hitSerializer
+
+	def render(self):
+		return [[hit[0], self.hitSerializer(hit[1:])] for hit in self.loop]
+
 
 
 # TODO: probably want this implementation 
