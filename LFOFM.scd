@@ -12,7 +12,7 @@
 )
 
 (
-var midiOut, channelMap, startWaveHandler, stopWaveHandler, startWave, stopWave, masterTempoClock, maxOSCport, scPort;
+var midiOut, channelMap, startWaveHandler, stopWaveHandler, startWave, stopWave, masterTempoClock, maxOSCport, scPort, waveNotes, waveNotesHandler;
 //all waves have a period of 2 beats and a range of [-1, 1]
 var sinwav = {|fr,ph,am,sh, time| (sin((pi*fr*time)+ph)*am)+sh};
 var coswav = {|fr,ph,am,sh, time| (cos((pi*fr*time)+ph)*am)+sh};
@@ -44,9 +44,18 @@ var plotFunc = {|calcFunc, start, end, calcFuncStr|
 };
 
 
+waveNotes = (0..11);
+waveNotes = [0, 4, 7];
 ~waveWarpFunc = {|val|
-    val.floor.midicps
+    var lowestC = ((val/12).floor * 12) - 12;
+    var chordNotes = (lowestC + waveNotes) ++ ((lowestC+12)+waveNotes) ++ ((lowestC+24)+waveNotes);
+    var closestNoteInd = (chordNotes-val).abs.minIndex;
+    chordNotes[closestNoteInd].midicps
 };
+
+OSCFunc.new({|msg, time, addr, recvPort|
+    waveNotes = msg[1..];
+}, "/waveNotes");
 
 
 // msg[1] is calc string
@@ -153,7 +162,50 @@ stopWave = {|msg, time, addr, recvPort|
 stopWaveHandler = OSCFunc(stopWave, "/stopWave");
 
 
+
+
+
+
 )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(
+var val = 65;
+var waveNotes = [5, 8, 10];
+var lowestC = ((val/12).floor * 12) - 12;
+var chordNotes = (lowestC + waveNotes) ++ ((lowestC+12)+waveNotes) ++ ((lowestC+24)+waveNotes);
+chordNotes.postln;
+(chordNotes-val).abs.minIndex
+)
+
+
+
 
 
 (
