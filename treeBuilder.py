@@ -87,6 +87,7 @@ class TreeBuilder:
 		else:
 			for i in range(childNumFunc(depth)):
 				newVal = transFunc(node.value)
+				# print "child", newVal, depth
 				newNode = Node(self.counter, newVal, node)
 				node.children.append(newNode)
 				newNode.treePosition = node.treePosition + "-" + str(len(node.children)-1)
@@ -115,16 +116,18 @@ class TreeBuilder:
 			self.currentNode = self.currentNode.parent
 
 	def moveRight(self, symbol):
-		ind = int(symbol.split(":")[1]) if ":" in symbol else 1
-		#print self.currentNode.value, self.siblingInd , ind, len(self.currentNode.parent.children), "value", self.currentNode.value
-		self.siblingInd = (self.siblingInd + ind) % len(self.currentNode.parent.children)
-		self.currentNode = self.currentNode.parent.children[self.siblingInd]
-		#print self.currentNode.value
+		if not self.currentNode.parent is None:
+			ind = int(symbol.split(":")[1]) if ":" in symbol else 1
+			#print self.currentNode.value, self.siblingInd , ind, len(self.currentNode.parent.children), "value", self.currentNode.value
+			self.siblingInd = (self.siblingInd + ind) % len(self.currentNode.parent.children)
+			self.currentNode = self.currentNode.parent.children[self.siblingInd]
+			#print self.currentNode.value
 
 	def moveLeft(self, symbol):
-		ind = int(symbol.split(":")[1]) if ":" in symbol else 1
-		self.siblingInd = (self.siblingInd - ind) % len(self.currentNode.parent.children)
-		self.currentNode = self.currentNode.parent.children[self.siblingInd]
+		if not self.currentNode.parent is None:
+			ind = int(symbol.split(":")[1]) if ":" in symbol else 1
+			self.siblingInd = (self.siblingInd - ind) % len(self.currentNode.parent.children)
+			self.currentNode = self.currentNode.parent.children[self.siblingInd]
 
 	def newDown(self, symbol):
 		newVal = self.transFunc(self.currentNode.value)
@@ -137,31 +140,33 @@ class TreeBuilder:
 		#TODO: - hanlde creating new siblings for tree root
 
 	def newRight(self, symbol):
-		newVal = self.transFunc(self.currentNode.value)
-		newNode = Node(self.counter, newVal, self.currentNode.parent)
-		self.currentNode.parent.children.insert(self.siblingInd+1, newNode)
-		newNode.treePosition = self.currentNode.parent.treePosition + "-" + str(self.siblingInd+1)
-		#TODO: modify sibling ind of all subsequent silings
-		for c in self.currentNode.parent.children[self.siblingInd+2:]:
-			newLastPosition = str(int(c.treePosition.split("-")[-1])+1)
-			positionSplit = c.treePosition.split("-")
-			positionSplit[-1] = newLastPosition
-			c.treePosition = "-".join(positionSplit)
-		self.currentNode = newNode
-		self.siblingInd += 1
+		if not self.currentNode.parent is None:
+			newVal = self.transFunc(self.currentNode.value)
+			newNode = Node(self.counter, newVal, self.currentNode.parent)
+			self.currentNode.parent.children.insert(self.siblingInd+1, newNode)
+			newNode.treePosition = self.currentNode.parent.treePosition + "-" + str(self.siblingInd+1)
+			#TODO: modify sibling ind of all subsequent silings
+			for c in self.currentNode.parent.children[self.siblingInd+2:]:
+				newLastPosition = str(int(c.treePosition.split("-")[-1])+1)
+				positionSplit = c.treePosition.split("-")
+				positionSplit[-1] = newLastPosition
+				c.treePosition = "-".join(positionSplit)
+			self.currentNode = newNode
+			self.siblingInd += 1
 
 	def newLeft(self, symbol):
-		newVal = self.transFunc(self.currentNode.value)
-		newNode = Node(self.counter, newVal, self.currentNode.parent)
-		self.currentNode.parent.children.insert(self.siblingInd - 1, newNode)
-		newNode.treePosition = self.currentNode.parent.treePosition + "-" + str(max(self.siblingInd - 1, 0))
-		#TODO: modify sibling ind of all subsequent silings
-		for c in self.currentNode.parent.children[self.siblingInd+1:]:
-			newLastPosition = str(int(c.treePosition.split("-")[-1])+1)
-			positionSplit = c.treePosition.split("-")
-			positionSplit[-1] = newLastPosition
-			c.treePosition = "-".join(positionSplit)
-		self.currentNode = newNode
+		if not self.currentNode.parent is None:
+			newVal = self.transFunc(self.currentNode.value)
+			newNode = Node(self.counter, newVal, self.currentNode.parent)
+			self.currentNode.parent.children.insert(self.siblingInd - 1, newNode)
+			newNode.treePosition = self.currentNode.parent.treePosition + "-" + str(max(self.siblingInd - 1, 0))
+			#TODO: modify sibling ind of all subsequent silings
+			for c in self.currentNode.parent.children[self.siblingInd+1:]:
+				newLastPosition = str(int(c.treePosition.split("-")[-1])+1)
+				positionSplit = c.treePosition.split("-")
+				positionSplit[-1] = newLastPosition
+				c.treePosition = "-".join(positionSplit)
+			self.currentNode = newNode
 
 	def execute(self, treeString):
 		actions = tl.parse(treeString).split(" ")
@@ -209,6 +214,15 @@ class TreeBuilder:
 		def addEdges(node, edgeList):
 			for c in node.children:
 				edgeList.append(str(node.ind) + "->" + str(c.ind))
+				addEdges(c, edgeList)
+		addEdges(self.root, el)
+		return "digraph " + fileName + " { \n" + "\n".join(el) + "\n}"
+
+	def toValueGraph(self, fileName):
+		el = []
+		def addEdges(node, edgeList):
+			for c in node.children:
+				edgeList.append(str(node.ind) + "("+str(node.value)+")" + " -> " + str(c.ind) + "("+str(c.value)+")")
 				addEdges(c, edgeList)
 		addEdges(self.root, el)
 		return "digraph " + fileName + " { \n" + "\n".join(el) + "\n}"

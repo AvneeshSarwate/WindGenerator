@@ -61,7 +61,7 @@ def isChordSeqSymbol(s):
 def isBallState(s):
     return s in 'abcdefghijk~' and len(s) == 1
 def isFuncTrigger(s):
-    return s in 'abcdefghijklmnopqrs~' and len(s) == 1
+    return allIn(s, string.letters+string.digit) or s == "~"
 
 
 symbolMatchers = {}
